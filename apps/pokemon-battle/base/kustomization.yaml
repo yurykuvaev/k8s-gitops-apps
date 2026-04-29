@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Shared base. Overlays inject namespace, replicas, ingress host, image tag.
+# DB ConfigMap aws-trivia-config and Secret aws-trivia-db are owned by
+# Terraform — both apps share the lab RDS, so they share the same configmap
+# and secret per namespace.
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml

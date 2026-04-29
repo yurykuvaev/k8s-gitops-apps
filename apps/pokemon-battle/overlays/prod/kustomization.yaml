@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: prod
+
+resources:
+  - ../../base
+
+replicas:
+  - name: pokemon-battle
+    count: 2
+
+# Prod tag is promoted manually from staging via PR.
+images:
+  - name: pokemon-battle
+    newName: 748415433090.dkr.ecr.us-east-1.amazonaws.com/pokemon-battle
+    newTag: latest
+
+patches:
+  - target:
+      kind: Ingress
+      name: pokemon-battle
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: pokemon.lab.yurykuvaev.com

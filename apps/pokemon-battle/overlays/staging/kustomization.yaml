@@ -7,14 +7,19 @@ resources:
   - ../../base
 
 replicas:
-  - name: whoami
+  - name: pokemon-battle
     count: 1
+
+images:
+  - name: pokemon-battle
+    newName: 748415433090.dkr.ecr.us-east-1.amazonaws.com/pokemon-battle
+    newTag: latest
 
 patches:
   - target:
       kind: Ingress
-      name: whoami
+      name: pokemon-battle
     patch: |-
       - op: replace
         path: /spec/rules/0/host
-        value: whoami-staging.lab.yurykuvaev.com
+        value: pokemon-staging.lab.yurykuvaev.com

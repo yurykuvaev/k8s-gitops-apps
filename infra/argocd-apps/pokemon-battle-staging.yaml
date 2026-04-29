@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: whoami-staging
+  name: pokemon-battle-staging
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
     targetRevision: main
-    path: apps/whoami/overlays/staging
+    path: apps/pokemon-battle/overlays/staging
   destination:
     server: https://kubernetes.default.svc
     namespace: staging

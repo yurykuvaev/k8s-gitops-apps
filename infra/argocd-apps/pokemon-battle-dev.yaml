@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: whoami-dev
+  name: pokemon-battle-dev
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
     targetRevision: main
-    path: apps/whoami/overlays/dev
+    path: apps/pokemon-battle/overlays/dev
   destination:
     server: https://kubernetes.default.svc
     namespace: dev

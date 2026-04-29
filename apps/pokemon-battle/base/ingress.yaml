@@ -1,26 +1,26 @@
-# Reuses the same ALB as aws-trivia via the shared `group.name: lab-dev`.
-# AWS LB Controller adds a host-based listener rule for whoami.lab.yurykuvaev.com.
-# ExternalDNS will create the matching Route53 record automatically.
+# Shares the same ALB as the trivia app via group.name: lab-dev. AWS LB
+# Controller adds a host-based rule. ExternalDNS makes the matching
+# Route53 record automatically.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: whoami
+  name: pokemon-battle
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
     alb.ingress.kubernetes.io/group.name: lab-dev
-    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
 spec:
   rules:
-    - host: whoami.lab.yurykuvaev.com
+    - host: pokemon.lab.yurykuvaev.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: whoami
+                name: pokemon-battle
                 port:
                   number: 80

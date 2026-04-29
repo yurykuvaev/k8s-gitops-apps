@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokemon-battle
+  labels:
+    app: pokemon-battle
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pokemon-battle
+  template:
+    metadata:
+      labels:
+        app: pokemon-battle
+    spec:
+      containers:
+        - name: app
+          image: pokemon-battle:latest
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            # Source vars must be declared BEFORE any env that references them
+            # via $(VAR) — kubelet substitutes only based on earlier entries.
+            - name: DB_HOST
+              valueFrom: { configMapKeyRef: { name: aws-trivia-config, key: DB_HOST } }
+            - name: DB_PORT
+              valueFrom: { configMapKeyRef: { name: aws-trivia-config, key: DB_PORT } }
+            - name: DB_NAME
+              valueFrom: { configMapKeyRef: { name: aws-trivia-config, key: DB_NAME } }
+            - name: DB_USER
+              valueFrom: { configMapKeyRef: { name: aws-trivia-config, key: DB_USER } }
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: aws-trivia-db, key: DB_PASSWORD } }
+            - name: DATABASE_URL
+              value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+          resources:
+            requests: { cpu: 50m,  memory: 128Mi }
+            limits:   { cpu: 500m, memory: 256Mi }
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: pokemon-battle
