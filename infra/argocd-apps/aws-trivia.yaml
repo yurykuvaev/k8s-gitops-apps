@@ -1,0 +1,34 @@
+# ArgoCD Application: tells the controller "watch apps/aws-trivia in the
+# k8s-gitops-apps repo and keep `default` namespace in sync with it".
+#
+# This object lives in the argocd namespace because that's where the Argo
+# controller looks for Application resources. The actual workloads it
+# deploys go into the namespace named under spec.destination.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aws-trivia
+  namespace: argocd
+  finalizers:
+    # Cascade delete: removing this Application also removes the workloads
+    # it created (Deployment, Service, Ingress, ConfigMap).
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/aws-trivia
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+
+  syncPolicy:
+    automated:
+      prune: true       # delete from cluster what was deleted from git
+      selfHeal: true    # revert manual kubectl edits, git is the source of truth
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
