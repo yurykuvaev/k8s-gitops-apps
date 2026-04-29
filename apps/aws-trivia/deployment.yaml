@@ -23,9 +23,8 @@ spec:
             - containerPort: 8000
               name: http
           env:
-            # Built from ConfigMap (host/user/db) + Secret (password).
-            - name: DATABASE_URL
-              value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+            # Source vars must be declared BEFORE any env that references them
+            # via $(VAR) — kubelet substitutes only based on earlier entries.
             - name: DB_HOST
               valueFrom: { configMapKeyRef: { name: aws-trivia-config, key: DB_HOST } }
             - name: DB_PORT
@@ -36,6 +35,9 @@ spec:
               valueFrom: { configMapKeyRef: { name: aws-trivia-config, key: DB_USER } }
             - name: DB_PASSWORD
               valueFrom: { secretKeyRef: { name: aws-trivia-db, key: DB_PASSWORD } }
+            # Composed connection string — must be after all referenced vars.
+            - name: DATABASE_URL
+              value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
           resources:
             requests: { cpu: 50m,  memory: 128Mi }
             limits:   { cpu: 500m, memory: 256Mi }
