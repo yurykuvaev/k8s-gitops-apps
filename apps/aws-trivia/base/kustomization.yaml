@@ -7,4 +7,6 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingress.yaml
-  - configmap.yaml
+  # ConfigMap aws-trivia-config (DB host/port/etc) is owned by Terraform —
+  # the values depend on the live RDS endpoint and get refreshed on every
+  # apply. See eks-test-env/k8s_resources.tf.
