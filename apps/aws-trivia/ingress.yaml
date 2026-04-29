@@ -1,0 +1,27 @@
+# Ingress for AWS Load Balancer Controller. Hooks into the existing ALB
+# created by eks-test-env Terraform via the alb.ingress.kubernetes.io/group.name
+# annotation, so multiple Ingresses share one ALB and listener.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aws-trivia
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    # Reuse the lab ALB instead of provisioning a new one.
+    alb.ingress.kubernetes.io/group.name: lab-dev
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+spec:
+  rules:
+    - host: trivia.lab.yurykuvaev.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aws-trivia
+                port:
+                  number: 80

@@ -1,0 +1,11 @@
+# Non-secret configuration. The DATABASE_URL is assembled from a Secret +
+# this ConfigMap at deploy time (see deployment.yaml env section).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-trivia-config
+data:
+  DB_HOST: "lab-dev-postgres.csmv6qq1ogfc.us-east-1.rds.amazonaws.com"
+  DB_PORT: "5432"
+  DB_NAME: "appdb"
+  DB_USER: "dbadmin"
