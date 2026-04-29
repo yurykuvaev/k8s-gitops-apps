@@ -1,0 +1,69 @@
+# Helm values for the argo-cd chart.
+# Chart: https://github.com/argoproj/argo-helm/tree/main/charts/argo-cd
+# Reference values: `helm show values argo/argo-cd > full-values.yaml`
+#
+# These values override the chart defaults. Anything not set here keeps
+# the chart's built-in default. Goal for the lab: minimum resource use,
+# no SSO, no Ingress yet (we'll enable Ingress when AWS LB Controller is in).
+
+global:
+  # Used by the chart to set the public URL in the UI and OIDC redirects.
+  # No DNS yet — flip this once Ingress is enabled.
+  domain: argocd.lab.yurykuvaev.com
+
+configs:
+  params:
+    # Run argocd-server without its own TLS. The plan is to terminate TLS
+    # at the ALB later via AWS LB Controller, then this stays insecure inside.
+    server.insecure: true
+
+# ---------- Controller (the thing that actually syncs apps) ----------
+controller:
+  replicas: 1
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+# ---------- API server / UI ----------
+server:
+  replicas: 1
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false   # flip to true once AWS LB Controller is installed
+  resources:
+    requests: { cpu: 50m,  memory: 128Mi }
+    limits:   { cpu: 300m, memory: 256Mi }
+
+# ---------- Repo server (clones git, renders manifests) ----------
+repoServer:
+  replicas: 1
+  autoscaling:
+    enabled: false
+  resources:
+    requests: { cpu: 50m,  memory: 128Mi }
+    limits:   { cpu: 300m, memory: 256Mi }
+
+# ---------- ApplicationSet controller (bulk Application generation) ----------
+applicationSet:
+  replicas: 1
+  resources:
+    requests: { cpu: 25m, memory: 64Mi  }
+    limits:   { cpu: 100m, memory: 128Mi }
+
+# ---------- Dex (SSO bridge) ----------
+# Lab has only one IAM user (yury-devops), no need for OIDC. Save resources.
+dex:
+  enabled: false
+
+# ---------- Notifications ----------
+# Will be useful later for Slack/email alerts on sync failures, off for now.
+notifications:
+  enabled: false
+
+# ---------- Redis ----------
+# Built-in single replica is fine for a lab.
+redis:
+  resources:
+    requests: { cpu: 25m, memory: 64Mi }
+    limits:   { cpu: 200m, memory: 128Mi }

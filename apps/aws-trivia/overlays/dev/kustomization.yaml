@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: dev
+
+resources:
+  - ../../base
+
+# Dev: single replica.
+replicas:
+  - name: aws-trivia
+    count: 1
+
+# CI auto-bumps this tag on every successful build of aws-trivia-game.
+# Promotion to staging/prod is manual (PR moving this newTag value into
+# the corresponding overlay).
+images:
+  - name: aws-trivia
+    newName: 748415433090.dkr.ecr.us-east-1.amazonaws.com/aws-trivia
+    newTag: bb28b9528d0a8100ef88dce6d102ffdb9c9ccea8
+
+patches:
+  - target:
+      kind: Ingress
+      name: aws-trivia
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: trivia-dev.lab.yurykuvaev.com

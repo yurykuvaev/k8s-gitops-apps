@@ -1,24 +1,19 @@
-# ArgoCD Application for whoami — second app in the prod namespace.
-# Same shape as aws-trivia, just different source path.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: whoami
+  name: aws-trivia-prod
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-
   source:
     repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
     targetRevision: main
-    path: apps/whoami
-
+    path: apps/aws-trivia/overlays/prod
   destination:
     server: https://kubernetes.default.svc
     namespace: prod
-
   syncPolicy:
     automated:
       prune: true

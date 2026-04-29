@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: prod
+
+resources:
+  - ../../base
+
+# Production: 2 replicas for resilience.
+replicas:
+  - name: aws-trivia
+    count: 2
+
+# Image tag for prod. Promoted manually from staging by editing this value
+# (or via a follow-up workflow). CI does NOT auto-bump this overlay.
+images:
+  - name: aws-trivia
+    newName: 748415433090.dkr.ecr.us-east-1.amazonaws.com/aws-trivia
+    newTag: bb28b9528d0a8100ef88dce6d102ffdb9c9ccea8
+
+# Patch the Ingress host to the prod hostname.
+patches:
+  - target:
+      kind: Ingress
+      name: aws-trivia
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: trivia.lab.yurykuvaev.com

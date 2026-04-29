@@ -1,0 +1,31 @@
+# Helm values for the aws-load-balancer-controller chart.
+# Chart: https://github.com/aws/eks-charts/tree/master/stable/aws-load-balancer-controller
+#
+# The controller watches Ingress and Service objects and reconciles the
+# corresponding rules on AWS ALB/NLB. We grant it AWS API permissions
+# via IRSA (IAM role created in eks-test-env/lb_controller.tf).
+
+clusterName: lab-dev
+region: us-east-1
+vpcId: vpc-0d051a905e3ad2859
+
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    # IRSA: this annotation tells AWS to mint OIDC tokens for the SA
+    # that get exchanged for temporary credentials of this role.
+    eks.amazonaws.com/role-arn: arn:aws:iam::748415433090:role/lab-dev-alb-controller
+
+# Single replica for the lab. In prod use 2+ for HA.
+replicaCount: 1
+
+resources:
+  requests: { cpu: 50m,  memory: 128Mi }
+  limits:   { cpu: 300m, memory: 256Mi }
+
+# Webhook health/readiness — chart defaults are fine, listed for visibility.
+livenessProbe:
+  failureThreshold: 2
+  initialDelaySeconds: 30
+  timeoutSeconds: 10

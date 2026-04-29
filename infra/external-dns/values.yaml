@@ -1,0 +1,42 @@
+# Helm values for the external-dns chart.
+# Chart: https://github.com/kubernetes-sigs/external-dns/tree/master/charts/external-dns
+#
+# ExternalDNS reads Ingress (and LoadBalancer Service) hostnames in the cluster
+# and creates the matching A/AAAA/TXT records in Route53. We scope it to
+# ingress sources only and to the lab hosted zone, with IRSA giving it
+# Route53 write permissions in that zone.
+
+provider:
+  name: aws
+
+# Watch only Ingresses; ignore Services. Less noise, fewer permissions used.
+sources:
+  - ingress
+
+# Limit to our zone — even though IAM policy already restricts, this avoids
+# the controller scanning irrelevant zones owned by the same account.
+# Filter matches by suffix: must equal or be a parent of the hosted zone name.
+# The lab uses zone `yurykuvaev.com`; subdomain trivia.lab.yurykuvaev.com is
+# managed inside that same zone.
+domainFilters:
+  - yurykuvaev.com
+
+aws:
+  region: us-east-1
+  zoneType: public
+
+policy: sync           # create + update + delete (mirror cluster state)
+
+# IRSA: pod-specific AWS credentials.
+serviceAccount:
+  create: true
+  name: external-dns
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::748415433090:role/lab-dev-external-dns
+
+# Single replica is fine; this is not a hot-path component.
+replicaCount: 1
+
+resources:
+  requests: { cpu: 25m, memory: 64Mi  }
+  limits:   { cpu: 100m, memory: 128Mi }
