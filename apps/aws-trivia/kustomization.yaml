@@ -10,4 +10,4 @@ resources:
 images:
 - name: aws-trivia
   newName: 748415433090.dkr.ecr.us-east-1.amazonaws.com/aws-trivia
-  newTag: 7053fa3133293616c0ca9066cad9d3cebfeeb60a
+  newTag: bb28b9528d0a8100ef88dce6d102ffdb9c9ccea8
