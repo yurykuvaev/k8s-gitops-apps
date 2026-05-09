@@ -1,0 +1,6 @@
+apiVersion: v2
+name: prometheus
+description: Prometheus server for the lab EKS dev environment.
+type: application
+version: 0.1.0
+appVersion: "2.52.0"

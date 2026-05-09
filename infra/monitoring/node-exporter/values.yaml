@@ -1,0 +1,28 @@
+# Values for the upstream prometheus-community/prometheus-node-exporter chart.
+#
+# DaemonSet — one pod per node, exposing host-level metrics (CPU, mem, disk,
+# net) on port 9100. Prometheus scrapes via Kubernetes service discovery
+# (see prometheus.yml — kubernetes_sd_configs role: endpoints).
+
+service:
+  port: 9100
+
+# DaemonSet by default; this is correct — one exporter per node.
+resources:
+  requests:
+    cpu: 50m
+    memory: 32Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+# Disable ServiceMonitor; we use static prometheus.yml.
+prometheus:
+  monitor:
+    enabled: false
+
+# Tolerate any taints — node-exporter must run on every node, including
+# control-plane in multi-NG clusters. Lab cluster doesn't have those, but
+# this is the realistic default.
+tolerations:
+  - operator: Exists

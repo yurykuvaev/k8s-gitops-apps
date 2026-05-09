@@ -1,0 +1,43 @@
+# Default values. Overridden by dev-values.yaml / staging-values.yaml /
+# prod-values.yaml in the GitHub Actions workflow with `helm upgrade -f`.
+
+image:
+  repository: prom/prometheus
+  tag: v2.52.0
+  pullPolicy: IfNotPresent
+
+# Prometheus listens on 9090 inside the pod. Service exposes the same port
+# inside the cluster — no Ingress (Grafana is the only public surface).
+port: 9090
+
+# Storage. PVC sized for the env. Retention is set as a CLI arg below;
+# match retention and storage in each env so you don't run out of disk.
+storage:
+  size: 5Gi
+  storageClass: gp3
+  retention: 7d
+
+# Pod resources. Sized for ~30 dev workloads, kube-state-metrics, and
+# 2 nodes worth of node-exporter. Bump for higher envs.
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+# runAsUser: 0 matches what was used at DigiCert. Calling out: this is NOT
+# best practice in prod — Prometheus has an official non-root mode. Kept here
+# for parity with the work setup so the interview question about it has a
+# real answer ("we used root because the chart we adapted did; in prod I
+# would switch to runAsUser: 65534 (nobody) and an fsGroup matching the PVC").
+securityContext:
+  runAsUser: 0
+
+# Scrape targets. kube-state-metrics and node-exporter are deployed as
+# separate Helm releases in the same namespace; we discover them by
+# Kubernetes service DNS.
+scrape:
+  scrapeInterval: 30s
+  evaluationInterval: 30s

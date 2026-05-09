@@ -1,0 +1,44 @@
+# Default values for the Grafana chart. Overridden by env-specific files
+# (dev-values.yaml, staging-values.yaml, prod-values.yaml) in the
+# GitHub Actions workflow.
+
+image:
+  repository: grafana/grafana
+  tag: "11.2.0"
+  pullPolicy: IfNotPresent
+
+port: 3000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# IRSA role ARN for the Grafana ServiceAccount. Comes from terraform
+# (aws_iam_role.grafana). The workflow injects this via --set on each deploy.
+irsaRoleArn: ""
+
+# AWS Secrets Manager secret name. The Secrets Store CSI driver will fetch
+# it and mount it into the pod. Must match the secret created in terraform
+# (lab-dev-grafana-admin).
+adminSecretName: lab-dev-grafana-admin
+
+# Where the CSI driver mounts the secret inside the pod. Grafana reads the
+# admin password from this file via GF_SECURITY_ADMIN_PASSWORD__FILE.
+adminSecretMountPath: /mnt/secrets
+
+# Ingress (Grafana is the only public-facing piece of the stack).
+ingress:
+  host: grafana-dev.lab.yurykuvaev.com
+  # IP whitelist via AWS LB Controller annotation. Set this to your public IP
+  # for the demo: e.g. 203.0.113.42/32. Empty list disables the whitelist.
+  allowedCidrs: []
+  # ALB group — share the lab-dev ALB created by the existing apps. No new ALB.
+  albGroup: lab-dev
+
+# Datasource pointing at Prometheus in the same namespace.
+datasource:
+  prometheusUrl: http://prometheus.monitoring.svc.cluster.local:9090

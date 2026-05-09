@@ -1,0 +1,15 @@
+# Prod: tighter ingress (whitelist office IPs only, real allowedCidrs filled
+# in via CI variables), more resources. Real prod would also add SSO and
+# replace the file-mounted admin password with OIDC/SAML.
+ingress:
+  host: grafana.lab.yurykuvaev.com
+  allowedCidrs: []
+  albGroup: lab-dev
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 2000m
+    memory: 2Gi

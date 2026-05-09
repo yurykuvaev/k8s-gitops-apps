@@ -1,0 +1,12 @@
+name: proxy-auth
+replicas: 2
+ingress:
+  enabled: true
+  host: proxy-auth-staging.lab.yurykuvaev.com
+  albGroup: lab-dev
+env:
+  - name: WHOAMI_NAME
+    value: proxy-auth-staging
+resources:
+  requests: { cpu: 50m, memory: 64Mi }
+  limits:   { cpu: 200m, memory: 128Mi }

@@ -1,0 +1,12 @@
+name: proxy-notifications
+replicas: 1
+ingress:
+  enabled: true
+  host: proxy-notifications-dev.lab.yurykuvaev.com
+  albGroup: lab-dev
+env:
+  - name: WHOAMI_NAME
+    value: proxy-notifications-dev
+resources:
+  requests: { cpu: 25m, memory: 32Mi }
+  limits:   { cpu: 100m, memory: 64Mi }

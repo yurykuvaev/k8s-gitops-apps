@@ -1,0 +1,12 @@
+name: proxy-orders
+replicas: 2
+ingress:
+  enabled: true
+  host: proxy-orders-staging.lab.yurykuvaev.com
+  albGroup: lab-dev
+env:
+  - name: WHOAMI_NAME
+    value: proxy-orders-staging
+resources:
+  requests: { cpu: 50m, memory: 64Mi }
+  limits:   { cpu: 200m, memory: 128Mi }

@@ -1,0 +1,15 @@
+ingress:
+  host: grafana-dev.lab.yurykuvaev.com
+  # Replace with your IP retrieved via `curl ifconfig.me` then /32 suffix.
+  # Empty list = no whitelist (open to internet through the ALB) — fine for
+  # the very first sync, but tighten before sharing the URL with anyone.
+  allowedCidrs: []
+  albGroup: lab-dev
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

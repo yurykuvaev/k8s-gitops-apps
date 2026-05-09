@@ -1,0 +1,8 @@
+apiVersion: v2
+name: proxy-service
+description: Shared chart for the lab's "proxy-*" services. Each service gets
+  its own values directory and ArgoCD Application; the chart itself stays
+  identical so we don't end up with N snowflake charts.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

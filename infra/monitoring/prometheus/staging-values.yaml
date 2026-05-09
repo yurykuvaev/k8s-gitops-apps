@@ -1,0 +1,17 @@
+# Staging: closer-to-prod sizing for retention/disk. Same chart, different
+# numbers. Reuses everything else from values.yaml.
+#
+# Note: this file exists to demonstrate the env-values pattern. The lab
+# cluster only runs the dev profile, but the file is real and is what
+# `helm upgrade -f staging-values.yaml` would consume in a multi-env setup.
+storage:
+  size: 20Gi
+  retention: 15d
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 2Gi

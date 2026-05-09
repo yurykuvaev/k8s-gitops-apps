@@ -1,0 +1,31 @@
+# Values for the upstream prometheus-community/kube-state-metrics chart.
+# Installed by the GitHub Actions workflow from the public repo, not vendored.
+#
+# Why not vendor: this is a community-maintained component. Re-implementing
+# its Helm chart locally would mean inheriting its bugs without inheriting
+# its updates. We override only what we need (resource sizing) and let the
+# upstream repo own everything else.
+
+# Match prometheus.yml scrape job: kube-state-metrics.<namespace>:8080
+service:
+  port: 8080
+
+# Sized for ~30 dev workloads. Bump for higher envs.
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Standard set of metrics. Disabling unneeded collectors here would shave
+# memory but most are useful for engineer-facing dashboards.
+metricLabelsAllowlist: []
+metricAnnotationsAllowList: []
+
+# Don't auto-scrape via ServiceMonitor — we use static config in prometheus.yml
+# (we are not running Prometheus Operator).
+prometheus:
+  monitor:
+    enabled: false

@@ -1,0 +1,14 @@
+# Staging: same shape as dev, slightly larger resources, separate hostname.
+# Lives here as a real example of the per-env values pattern.
+ingress:
+  host: grafana-staging.lab.yurykuvaev.com
+  allowedCidrs: []
+  albGroup: lab-dev
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi

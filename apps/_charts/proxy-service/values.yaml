@@ -1,0 +1,41 @@
+# Default values. Every per-service per-env values file overrides these.
+# Anything not overridden falls through to whatever the chart picks here.
+
+# Required: each service MUST set name. We don't default it — fail loudly
+# instead of silently deploying "proxy-service" everywhere.
+name: ""
+
+image:
+  repository: traefik/whoami
+  tag: v1.10
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+containerPort: 80
+servicePort: 80
+
+# Path used for both Ingress backend and the ALB target group health check.
+# whoami returns 200 on /, so / is a fine healthcheck path for these dummies.
+healthcheckPath: /
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
+
+# Routing. Per-env values files set the host (e.g. proxy-auth-dev.lab.example.com)
+# and which ALB group to share. Keeping all proxy-* services on the same group
+# means one ALB for the whole stack — the cost-saving from the "ALB → Ingress"
+# story.
+ingress:
+  enabled: true
+  host: ""               # required, no default — set per env
+  albGroup: lab-dev
+  scheme: internet-facing
+
+# Optional env vars for the container.
+env: []

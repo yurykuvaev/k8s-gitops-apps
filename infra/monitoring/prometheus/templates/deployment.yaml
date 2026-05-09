@@ -1,0 +1,79 @@
+# Single-replica Deployment. For dev this is fine — losing Prometheus for
+# 30 seconds during a restart is acceptable. In prod you would run 2+ replicas
+# with HA configuration (Thanos sidecar / Mimir / Cortex) for long-term
+# storage and global view across replicas.
+#
+# strategy: Recreate (not RollingUpdate) because the PVC is RWO and only one
+# pod can attach to it at a time. With RollingUpdate the new pod would never
+# bind the PVC and the rollout would hang forever.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: prometheus
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prometheus
+      annotations:
+        # Force pod restart when the config changes — otherwise the ConfigMap
+        # update is mounted but Prometheus never re-reads prometheus.yml until
+        # something else triggers a restart.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: prometheus
+      securityContext:
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        # fsGroup matches runAsUser so Prometheus can write to the PVC.
+        # Without this, ReadWriteOnce PVCs are mounted root-owned and a
+        # non-root Prometheus would EACCES on /prometheus.
+        fsGroup: {{ .Values.securityContext.runAsUser }}
+      containers:
+        - name: prometheus
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --storage.tsdb.retention.time={{ .Values.storage.retention }}
+            - --web.console.libraries=/usr/share/prometheus/console_libraries
+            - --web.console.templates=/usr/share/prometheus/consoles
+            - --web.enable-lifecycle
+          ports:
+            - name: http
+              containerPort: {{ .Values.port }}
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus
+            - name: data
+              mountPath: /prometheus
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: prometheus-data

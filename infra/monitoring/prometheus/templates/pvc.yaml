@@ -1,0 +1,19 @@
+# Persistent Volume Claim for Prometheus TSDB.
+# Without this, every pod restart wipes metrics history. Even in dev that
+# defeats the point — engineers troubleshooting an incident lose the timeline
+# the moment Prometheus restarts.
+#
+# StorageClass gp3 is the EKS default for AWS. Backed by EBS, single-AZ.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: prometheus
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: {{ .Values.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.size }}

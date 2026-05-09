@@ -1,0 +1,174 @@
+# ArgoCD Applications for proxy-* services in PROD.
+#
+# Sync policy: NO automated sync. Manual sync only.
+# Why: prod changes need a human to click sync (or trigger via gh-actions
+# with approval) so promotions are intentional. Drift shows as OutOfSync
+# but is not auto-corrected. Matches the DigiCert "higher environments
+# started more conservatively with manual sync" pattern.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-auth-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-auth/values/prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-billing-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-billing/values/prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-checkout-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-checkout/values/prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-inventory-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-inventory/values/prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-notifications-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-notifications/values/prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-orders-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-orders/values/prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-payments-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-payments/values/prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

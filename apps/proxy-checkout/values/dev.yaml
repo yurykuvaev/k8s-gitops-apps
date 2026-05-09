@@ -1,0 +1,12 @@
+name: proxy-checkout
+replicas: 1
+ingress:
+  enabled: true
+  host: proxy-checkout-dev.lab.yurykuvaev.com
+  albGroup: lab-dev
+env:
+  - name: WHOAMI_NAME
+    value: proxy-checkout-dev
+resources:
+  requests: { cpu: 25m, memory: 32Mi }
+  limits:   { cpu: 100m, memory: 64Mi }

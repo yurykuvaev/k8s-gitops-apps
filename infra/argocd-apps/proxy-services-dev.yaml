@@ -1,0 +1,194 @@
+# ArgoCD Applications for the proxy-* services in DEV.
+#
+# Sync policy: automated.prune=true, selfHeal=true.
+# Why: dev is the loudest about drift and the cheapest to recover from. We
+# want every manual kubectl change immediately reverted to Git, and we want
+# resources removed from Git to be deleted from the cluster (prune).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-auth-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-auth/values/dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-billing-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-billing/values/dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-checkout-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-checkout/values/dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-inventory-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-inventory/values/dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-notifications-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-notifications/values/dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-orders-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-orders/values/dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxy-payments-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yurykuvaev/k8s-gitops-apps
+    targetRevision: main
+    path: apps/_charts/proxy-service
+    helm:
+      valueFiles:
+        - ../../proxy-payments/values/dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

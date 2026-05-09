@@ -1,0 +1,16 @@
+# ClusterIP service — Prometheus is reached by Grafana only, no public exposure.
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: prometheus
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: prometheus
+  ports:
+    - name: http
+      port: {{ .Values.port }}
+      targetPort: http

@@ -1,0 +1,12 @@
+name: proxy-billing
+replicas: 2
+ingress:
+  enabled: true
+  host: proxy-billing-staging.lab.yurykuvaev.com
+  albGroup: lab-dev
+env:
+  - name: WHOAMI_NAME
+    value: proxy-billing-staging
+resources:
+  requests: { cpu: 50m, memory: 64Mi }
+  limits:   { cpu: 200m, memory: 128Mi }

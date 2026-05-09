@@ -1,0 +1,133 @@
+# Deploy the monitoring stack (Prometheus, Grafana, kube-state-metrics,
+# node-exporter) into the dev EKS cluster via Helm.
+#
+# Why this is a CI workflow and not an ArgoCD Application: the DigiCert work
+# project deployed monitoring through GitLab CI with Helm — separate from the
+# ArgoCD model used for application services. Mirroring that pattern here so
+# the lab has both delivery models side by side.
+#
+# Auth: AWS OIDC role (eks-test-env/github_actions.tf). The role has
+# eks:DescribeCluster + an EKS access entry mapping it to namespace-admin
+# on `monitoring`.
+name: monitoring-deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra/monitoring/**'
+      - '.github/workflows/monitoring-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Target env (selects which *-values.yaml file to use)'
+        required: true
+        default: dev
+        type: choice
+        options: [dev, staging, prod]
+
+permissions:
+  id-token: write   # required for AWS OIDC
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: lab-dev
+  IAM_ROLE_NAME: lab-dev-github-actions
+  GRAFANA_IRSA_ROLE_NAME: lab-dev-grafana
+  TARGET_ENV: ${{ github.event.inputs.env || 'dev' }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.2
+
+      - name: Helm lint — prometheus
+        run: helm lint infra/monitoring/prometheus -f infra/monitoring/prometheus/${{ env.TARGET_ENV }}-values.yaml
+
+      - name: Helm lint — grafana
+        run: helm lint infra/monitoring/grafana -f infra/monitoring/grafana/${{ env.TARGET_ENV }}-values.yaml
+
+      - name: Helm template — prometheus (sanity render)
+        run: helm template prometheus infra/monitoring/prometheus -n monitoring -f infra/monitoring/prometheus/${{ env.TARGET_ENV }}-values.yaml > /tmp/prometheus.yaml
+
+      - name: Helm template — grafana (sanity render)
+        run: |
+          helm template grafana infra/monitoring/grafana -n monitoring \
+            -f infra/monitoring/grafana/${{ env.TARGET_ENV }}-values.yaml \
+            --set irsaRoleArn=arn:aws:iam::000000000000:role/placeholder \
+            > /tmp/grafana.yaml
+
+  deploy:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.2
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.IAM_ROLE_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER }}
+
+      - name: Resolve account ID (for IRSA ARN)
+        id: aws
+        run: echo "account_id=$(aws sts get-caller-identity --query Account --output text)" >> "$GITHUB_OUTPUT"
+
+      # ---------- exporters first ----------
+      # Prometheus depends on these for service discovery; install them first
+      # so when Prometheus comes up it already has scrape targets.
+      - name: Add prometheus-community repo
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+
+      - name: Deploy kube-state-metrics
+        run: |
+          helm upgrade --install kube-state-metrics prometheus-community/kube-state-metrics \
+            --namespace monitoring \
+            --version 5.25.1 \
+            --values infra/monitoring/kube-state-metrics/values.yaml \
+            --wait --timeout 5m
+
+      - name: Deploy node-exporter
+        run: |
+          helm upgrade --install prometheus-node-exporter prometheus-community/prometheus-node-exporter \
+            --namespace monitoring \
+            --version 4.39.0 \
+            --values infra/monitoring/node-exporter/values.yaml \
+            --wait --timeout 5m
+
+      # ---------- prometheus ----------
+      - name: Deploy Prometheus
+        run: |
+          helm upgrade --install prometheus infra/monitoring/prometheus \
+            --namespace monitoring \
+            --values infra/monitoring/prometheus/${{ env.TARGET_ENV }}-values.yaml \
+            --wait --timeout 5m
+
+      # ---------- grafana ----------
+      # IRSA ARN is constructed from account ID and the well-known role name.
+      - name: Deploy Grafana
+        run: |
+          helm upgrade --install grafana infra/monitoring/grafana \
+            --namespace monitoring \
+            --values infra/monitoring/grafana/${{ env.TARGET_ENV }}-values.yaml \
+            --set irsaRoleArn=arn:aws:iam::${{ steps.aws.outputs.account_id }}:role/${{ env.GRAFANA_IRSA_ROLE_NAME }} \
+            --wait --timeout 5m
+
+      - name: Show deployed resources
+        run: |
+          kubectl -n monitoring get pods,svc,ingress,pvc,secretproviderclass

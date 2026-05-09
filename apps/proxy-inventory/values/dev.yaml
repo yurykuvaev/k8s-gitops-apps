@@ -1,0 +1,12 @@
+name: proxy-inventory
+replicas: 1
+ingress:
+  enabled: true
+  host: proxy-inventory-dev.lab.yurykuvaev.com
+  albGroup: lab-dev
+env:
+  - name: WHOAMI_NAME
+    value: proxy-inventory-dev
+resources:
+  requests: { cpu: 25m, memory: 32Mi }
+  limits:   { cpu: 100m, memory: 64Mi }
